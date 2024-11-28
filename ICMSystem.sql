@@ -1,10 +1,10 @@
--- DROP DATABASE IF EXISTS ICMSystemDB;
+DROP DATABASE IF EXISTS ICMSystemDB;
 
 CREATE DATABASE IF NOT EXISTS ICMSystemDB;
 
 USE ICMSystemDB;
 
-CREATE TABLE IF NOT EXISTS suppliers (
+CREATE TABLE IF NOT EXISTS Suppliers (
 	 supplier_id INT NOT NULL AUTO_INCREMENT,
 	 supplier_name VARCHAR(100),
 	 contact_number VARCHAR(15),
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
 	 PRIMARY KEY (supplier_id)
 );
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS Products (
 	 product_id INT NOT NULL AUTO_INCREMENT,
 	 product_name VARCHAR(100) NOT NULL,
 	 batch_number VARCHAR(50) NOT NULL,
@@ -21,35 +21,37 @@ CREATE TABLE IF NOT EXISTS products (
 	 date_of_manufacture DATE NOT NULL,
 	 quantity INT NOT NULL,
 	 price DECIMAL(10,2) NOT NULL DEFAULT '0',
-     supplier_id INT,
+     supplier_id INT NOT NULL,
 	 PRIMARY KEY (product_id),
-	 CONSTRAINT fk_products_suppliers FOREIGN KEY (supplier_id) REFERENCES suppliers (supplier_id)
+	 CONSTRAINT fk_products_suppliers FOREIGN KEY (supplier_id) REFERENCES Suppliers (supplier_id)
 );
 
 
 
-CREATE TABLE IF NOT EXISTS employees (
+CREATE TABLE IF NOT EXISTS Employees (
 	 employee_id INT NOT NULL AUTO_INCREMENT,
 	 name VARCHAR(255),
 	 role ENUM('staff', 'manager') NOT NULL,
+     contact_number VARCHAR(15),
+     address VARCHAR(255),
 	  PRIMARY KEY (employee_id)
 );
 
 
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE IF NOT EXISTS Customers (
 	 customer_id INT NOT NULL AUTO_INCREMENT,
 	 customer_name VARCHAR(100),
 	 address VARCHAR(255),
-	 contact_information VARCHAR(100),
+	 contact_number VARCHAR(100),
 	 payment_detail VARCHAR(100),
      employee_id INT,
 	  PRIMARY KEY (customer_id),
-	 CONSTRAINT fk_customer_employees FOREIGN KEY (employee_id) REFERENCES employees (employee_id)
+	 CONSTRAINT fk_customer_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id)
 );
 
 
 
-CREATE TABLE IF NOT EXISTS inventory (
+CREATE TABLE IF NOT EXISTS Inventory (
 	 inventory_id INT NOT NULL AUTO_INCREMENT,
 	 location VARCHAR(255),
 	 production_quantity INT,
@@ -58,12 +60,12 @@ CREATE TABLE IF NOT EXISTS inventory (
      product_id INT,
      employee_id INT,
 	 PRIMARY KEY (inventory_id),
-	 CONSTRAINT fk_inventory_products FOREIGN KEY (product_id) REFERENCES products (product_id),
-	 CONSTRAINT fk_inventory_employees FOREIGN KEY (employee_id) REFERENCES employees (employee_id)
+	 CONSTRAINT fk_inventory_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
+	 CONSTRAINT fk_inventory_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id)
 );
 
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS Orders (
 	 order_id INT NOT NULL AUTO_INCREMENT,
 	 order_date DATE,
 	 status VARCHAR(50),
@@ -73,24 +75,24 @@ CREATE TABLE IF NOT EXISTS orders (
      employee_id INT,
      customer_id INT, 
 	  PRIMARY KEY (order_id),
-	 CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES products (product_id),
-	 CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES employees (employee_id),
-	 CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id) REFERENCES customers (customer_id)
+	 CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
+	 CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id),
+	 CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id) REFERENCES Customers (customer_id)
 );
 
 
-CREATE TABLE IF NOT EXISTS warehouse (
+CREATE TABLE IF NOT EXISTS Warehouse (
 	 warehouse_id INT NOT NULL AUTO_INCREMENT,
 	 location’ VARCHAR(255),
 	 capacity’ INT,
 	 inventory_stored’ INT,
      employee_id INT,
 		PRIMARY KEY (warehouse_id),
-	 CONSTRAINT fk_warehouse_employees FOREIGN KEY (employee_id) REFERENCES employees (employee_id)
+	 CONSTRAINT fk_warehouse_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id)
 );
 
 
-CREATE TABLE IF NOT EXISTS shipment (
+CREATE TABLE IF NOT EXISTS Shipment (
 	 shipment_id INT NOT NULL AUTO_INCREMENT,
 	 shipment_date DATE,
 	 status VARCHAR(50),
@@ -98,10 +100,64 @@ CREATE TABLE IF NOT EXISTS shipment (
 	 deliver_date DATE,
      order_id INT,
 	 PRIMARY KEY (shipment_id),
-	 CONSTRAINT fk_shipment_orders FOREIGN KEY (order_id) REFERENCES orders (order_id)
+	 CONSTRAINT fk_shipment_orders FOREIGN KEY (order_id) REFERENCES Orders (order_id)
 );
 
-INSERT INTO Products (product_name, batch_number, category, unit_price, date_of_manufacture, quantity, price)
-VALUES ('Laptop', 'BN123', 'Electronics', 500, '2024-10-01', 100, 600);
+INSERT INTO Suppliers (supplier_name, contact_number,address)
+VALUES ('ABC Electronics', 7131111001, '123 Main St, Houston, Tx'),
+('XYZ Clothing', 7132221002, '123 32th St, Houston, Tx'),
+('Good Foods Co', 7133331003, '123 32th St, Houston, Tx'),
+('Home Stuff Co', 7135551005, '101 Industrial Rd, Houston,Tx');
+
+INSERT INTO Products (product_name, batch_number, category, unit_price, date_of_manufacture, quantity, price, supplier_id)
+VALUES ('Laptop', 'BN123', 'Electronics', 500.00, '2024-10-01', 100, 600.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'ABC Electronics')),
+('TV', 'BN234', 'Electronics', 700.00, '2024-11-19', 200, 800.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'ABC Electronics')),
+('T-Shirt', 'BN345', 'Clothing', 5.00, '2024-05-21', 100, 10.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'XYZ Clothing')),
+('Apple', 'BN456', 'Grocery', .50, '2024-11-01', 100, 1.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'Good Foods Co')),
+('Shirt', 'BN567', 'Clothing', 5.00, '2024-07-13', 100, 8.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'XYZ Clothing')),
+('M&Ms', 'BN678', 'Grocery', 3.00, '2024-11-06', 40, 5.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'Good Foods Co')),
+('Pillow', 'BN7898', 'Home Goods', 4.00, '2024-08-20', 100, 7.00,
+	(SELECT supplier_id 
+    FROM Suppliers 
+    WHERE supplier_name = 'Home Stuff Co'));
+
+
+INSERT INTO Employees (name, role, contact_number, address)
+VALUES ('John Doe', 'manager', '7121231111', '123 Houston St, Houston, Tx'),
+	('Jane Smith', 'staff', '7121232222', '234 Katy St, Katy, Tx'),
+	('Alice Johnson', 'staff', '7121233333', '3453 Sugarland St, Sugarland, Tx'),
+	('Bob Brown', 'manager', '7121234444', '123 Woodlands St, Woodlands, Tx'),
+	('Charlies Davis', 'staff', '7121235555', '123 Spring St, Spring, Tx'),
+	('Jack Bauer', 'staff', '7121236666', '123 Humble St, Humble, Tx');
+
+INSERT INTO Customers (customer_name, address, contact_number,payment_detail, employee_id)
+VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff')),
+('Dana White', '234 UFC Rd, Houston, Tx', '7132222222', 'AMEX',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff')); -- how to select random foreign key, or maybe no foreign key for customer one?
+
+    
 
 
