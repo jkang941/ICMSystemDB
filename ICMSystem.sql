@@ -68,18 +68,38 @@ CREATE TABLE IF NOT EXISTS Inventory (
 CREATE TABLE IF NOT EXISTS Orders (
 	 order_id INT NOT NULL AUTO_INCREMENT,
 	 order_date DATE,
-	 status VARCHAR(50),
+	 status VARCHAR(50) NOT NULL,
 	 shipping_address VARCHAR(50),
-	 amount DECIMAL,
-     product_id INT,
-     employee_id INT,
+	 -- amount DECIMAL,
+     -- product_id INT,
+     -- employee_id INT,
      customer_id INT, 
 	  PRIMARY KEY (order_id),
-	 CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
-	 CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id),
+	 -- CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
+	 -- CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id),
 	 CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id) REFERENCES Customers (customer_id)
 );
 
+CREATE TABLE IF NOT EXISTS OrderItems (
+	order_items_id INT NOT NULL AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity DECIMAL NOT NULL,
+    PRIMARY KEY (order_items_id),
+    CONSTRAINT fk_order_id FOREIGN KEY (order_id) REFERENCES Orders (order_id),
+    CONSTRAINT fk_product_id FOREIGN KEY (product_id) REFERENCES Products (product_id)
+);
+
+CREATE TABLE IF NOT EXISTS OrderStatus(
+	status_id INT NOT NULL AUTO_INCREMENT,
+    status_value VARCHAR(255),
+	PRIMARY KEY (status_id)
+);
+
+INSERT INTO OrderStatus (status_value)
+VALUES ('Order is bring prepared'), -- 1
+('Shipped'), -- 2
+('Delivered'); -- 3
 
 CREATE TABLE IF NOT EXISTS Warehouse (
 	 warehouse_id INT NOT NULL AUTO_INCREMENT,
@@ -197,6 +217,39 @@ VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
     WHERE role = 'staff'
     ORDER BY RAND()
     LIMIT 1));
+    
+
+
+INSERT INTO Orders (order_date, status, shipping_address, customer_id)	
+VALUES (CURDATE(), 
+	(SELECT status_value
+    FROM OrderStatus
+    WHERE status_id = 1), 
+    (SELECT address
+    FROM Customers
+    WHERE customer_name = "Jack Smith"),
+	(SELECT customer_id
+	FROM Customers
+	WHERE customer_name = "Jack Smith")),
+    
+    (CURDATE(),
+    (SELECT status_value
+    FROM OrderStatus
+    WHERE status_id = 1),
+	(SELECT address
+    FROM Customers
+    WHERE customer_name = "Dana White"),
+    (SELECT customer_id
+	FROM Customers
+	WHERE customer_name = "Dana White"));
+    
+
+    
+    
+    
+
+
+
 
     
 
