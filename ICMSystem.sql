@@ -99,13 +99,14 @@ CREATE TABLE IF NOT EXISTS OrderStatus(
 INSERT INTO OrderStatus (status_value)
 VALUES ('Order is bring prepared'), -- 1
 ('Shipped'), -- 2
-('Delivered'); -- 3
+('Delivered'), -- 3
+('Canceled'); -- 4
 
 CREATE TABLE IF NOT EXISTS Warehouse (
 	 warehouse_id INT NOT NULL AUTO_INCREMENT,
-	 location’ VARCHAR(255),
-	 capacity’ INT,
-	 inventory_stored’ INT,
+	 location VARCHAR(255),
+	 capacity INT,
+	 inventory_stored INT,
      employee_id INT,
 		PRIMARY KEY (warehouse_id),
 	 CONSTRAINT fk_warehouse_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id)
@@ -243,6 +244,17 @@ VALUES (CURDATE(),
 	FROM Customers
 	WHERE customer_name = "Dana White"));
     
+
+INSERT INTO Warehouse(location, capacity, inventory_stored, employee_id)
+VALUES('Warehouse A, Springfield, IL', 10000, 5000, 1),
+('Warehouse B, Springfield, IL', 8000, 3000, 4),
+('Warehouse C, Springfield, IL', 12000, 6000, 4),
+('Warehouse D, Springfield, IL', 15000, 7000, 1),
+('Warehouse E, Springfield, IL', 9000, 45000, 4),
+('Warehouse F, Springfield, IL', 11000, 55000, 1),
+('Warehouse G, Springfield, IL', 14000, 6800, 1);
+
+
 
     
     
