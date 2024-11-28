@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS Orders (
      -- product_id INT,
      -- employee_id INT,
      customer_id INT, 
+     -- total_price DECIMAL(10,2) NOT NULL,
 	  PRIMARY KEY (order_id),
 	 -- CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
 	 -- CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id),
@@ -85,6 +86,7 @@ CREATE TABLE IF NOT EXISTS OrderItems (
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity DECIMAL NOT NULL,
+    price DECIMAL(10,2) DEFAULT 0.00,
     PRIMARY KEY (order_items_id),
     CONSTRAINT fk_order_id FOREIGN KEY (order_id) REFERENCES Orders (order_id),
     CONSTRAINT fk_product_id FOREIGN KEY (product_id) REFERENCES Products (product_id)
@@ -147,7 +149,7 @@ VALUES ('Laptop', 'BN123', 'Electronics', 500.00, '2024-10-01', 100, 600.00,
 	(SELECT supplier_id 
     FROM Suppliers 
     WHERE supplier_name = 'Good Foods Co')),
-('Shirt', 'BN567', 'Clothing', 5.00, '2024-07-13', 100, 8.00,
+('Jeans', 'BN567', 'Clothing', 15.00, '2024-07-13', 100, 25.00,
 	(SELECT supplier_id 
     FROM Suppliers 
     WHERE supplier_name = 'XYZ Clothing')),
@@ -244,6 +246,38 @@ VALUES (CURDATE(),
 	FROM Customers
 	WHERE customer_name = "Dana White"));
     
+-- Customer Order Items
+-- Jack Smith   
+SET @jacksmith = (SELECT order_id FROM ORDERS WHERE customer_id = 1);
+INSERT INTO OrderItems(order_id, product_id, quantity, price)
+VALUES ( @jacksmith, 1, 1,
+		(SELECT price FROM Products WHERE product_id = 1)),
+		( @jacksmith, 3, 1,
+		(SELECT price FROM Products WHERE product_id = 3)),
+		( @jacksmith, 5, 2,
+        (SELECT price FROM Products WHERE product_id = 5));
+
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 1;
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 3;
+UPDATE Products SET quantity = quantity -2 WHERE product_id = 5;
+
+-- Customer Order Items
+-- Dana White  
+SET @danawhite = (SELECT order_id FROM ORDERS WHERE customer_id = 2);
+INSERT INTO OrderItems(order_id, product_id, quantity, price)
+VALUES ( @danawhite, 2, 1,
+		(SELECT price FROM Products WHERE product_id = 2)),
+		( @danawhite, 6, 5,
+        (SELECT price FROM Products WHERE product_id = 6)),
+		( @danawhite, 7, 4,
+		(SELECT price FROM Products WHERE product_id = 7));
+
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 2;
+UPDATE Products SET quantity = quantity -5 WHERE product_id = 6;
+UPDATE Products SET quantity = quantity -4 WHERE product_id = 7;
+
+
+
 
 INSERT INTO Warehouse(location, capacity, inventory_stored, employee_id)
 VALUES('Warehouse A, Springfield, IL', 10000, 5000, 1),
