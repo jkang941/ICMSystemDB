@@ -1,4 +1,4 @@
--- DROP DATABASE IF EXISTS ICMSystemDB;
+DROP DATABASE IF EXISTS ICMSystemDB;
 
 CREATE DATABASE IF NOT EXISTS ICMSystemDB;
 
@@ -134,7 +134,7 @@ VALUES ('Laptop', 'BN123', 'Electronics', 500.00, '2024-10-01', 100, 600.00,
 	(SELECT supplier_id 
     FROM Suppliers 
     WHERE supplier_name = 'Good Foods Co')),
-('Pillow', 'BN7898', 'Home Goods', 4.00, '2024-08-20', 100, 7.00,
+('Pillow', 'BN789', 'Home Goods', 4.00, '2024-08-20', 100, 7.00,
 	(SELECT supplier_id 
     FROM Suppliers 
     WHERE supplier_name = 'Home Stuff Co'));
@@ -148,15 +148,55 @@ VALUES ('John Doe', 'manager', '7121231111', '123 Houston St, Houston, Tx'),
 	('Charlies Davis', 'staff', '7121235555', '123 Spring St, Spring, Tx'),
 	('Jack Bauer', 'staff', '7121236666', '123 Humble St, Humble, Tx');
 
-INSERT INTO Customers (customer_name, address, contact_number,payment_detail, employee_id)
+INSERT INTO Customers (customer_name, address, contact_number, payment_detail, employee_id)
 VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
 	(SELECT employee_id
     FROM employees
-    WHERE role = 'staff')),
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
 ('Dana White', '234 UFC Rd, Houston, Tx', '7132222222', 'AMEX',
 	(SELECT employee_id
     FROM employees
-    WHERE role = 'staff')); -- how to select random foreign key, or maybe no foreign key for customer one?
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Deadpool', '345 Marvel Ln, Houston, Tx', '7133333333', 'VISA',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Georgia Blue', '202 Birch St, Houston, Tx', '7134444444', 'VISA',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Ethan Green', '303 Cedar St, Houston, Tx', '7135555555', 'VISA',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Fiona Black', '3404 Spruce St, Houston, Tx', '7136666666', 'VISA',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Hannah Gray', '707 Aspen St, Houston, Tx', '7137777777', 'MASTERCARD',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1)),
+('Alice Johnson', '789 Pine St, Houston, Tx', '7138888888', 'VISA',
+	(SELECT employee_id
+    FROM employees
+    WHERE role = 'staff'
+    ORDER BY RAND()
+    LIMIT 1));
 
     
 
