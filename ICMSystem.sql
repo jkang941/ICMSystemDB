@@ -219,7 +219,8 @@ VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
     FROM employees
     WHERE role = 'staff'
     ORDER BY RAND()
-    LIMIT 1));
+    LIMIT 1))
+;
     
 
 
@@ -257,9 +258,9 @@ VALUES ( @jacksmith, 1, 1,
 		( @jacksmith, 5, 2,
         (SELECT price FROM Products WHERE product_id = 5));
 
-UPDATE Products SET quantity = quantity -1 WHERE product_id = 1;
-UPDATE Products SET quantity = quantity -1 WHERE product_id = 3;
-UPDATE Products SET quantity = quantity -2 WHERE product_id = 5;
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 1 AND quantity >0;
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 3 AND quantity >0;
+UPDATE Products SET quantity = quantity -2 WHERE product_id = 5 AND quantity >0;
 
 -- Customer Order Items
 -- Dana White  
@@ -272,9 +273,9 @@ VALUES ( @danawhite, 2, 1,
 		( @danawhite, 7, 4,
 		(SELECT price FROM Products WHERE product_id = 7));
 
-UPDATE Products SET quantity = quantity -1 WHERE product_id = 2;
-UPDATE Products SET quantity = quantity -5 WHERE product_id = 6;
-UPDATE Products SET quantity = quantity -4 WHERE product_id = 7;
+UPDATE Products SET quantity = quantity -1 WHERE product_id = 2 AND quantity >0;
+UPDATE Products SET quantity = quantity -5 WHERE product_id = 6 AND quantity >0;
+UPDATE Products SET quantity = quantity -4 WHERE product_id = 7 AND quantity >0;
 
 
 
