@@ -113,10 +113,10 @@ CREATE TABLE IF NOT EXISTS Shipments (
 -- POPULATE TABLES 
 
 INSERT INTO Suppliers (supplier_name, contact_number,address)
-VALUES ('ABC Electronics', 7131111001, '123 Main St, Houston, Tx'),
-('XYZ Clothing', 7132221002, '123 32th St, Houston, Tx'),
-('Good Foods Co', 7133331003, '123 32th St, Houston, Tx'),
-('Home Stuff Co', 7135551005, '101 Industrial Rd, Houston,Tx');
+VALUES ('ABC Electronics', '7131111001', '123 Main St, Houston, Tx'),
+('XYZ Clothing', '7132221002', '123 32th St, Houston, Tx'),
+('Good Foods Co', '7133331003', '123 32th St, Houston, Tx'),
+('Home Stuff Co', '7135551005', '101 Industrial Rd, Houston,Tx');
 
 INSERT INTO Products (product_name, batch_number, category, unit_price, date_of_manufacture, initial_quantity, price, supplier_id)
 VALUES ('Laptop', 'BN123', 'Electronics', 500.00, '2024-10-01', 100, 600.00,
