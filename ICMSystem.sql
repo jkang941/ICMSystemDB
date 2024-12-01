@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS Employees (
 	 role ENUM('staff', 'manager') NOT NULL,
      contact_number VARCHAR(15),
      address VARCHAR(255),
+     salary INT NOT NULL,
 	  PRIMARY KEY (employee_id)
 );
 
@@ -68,7 +69,7 @@ CREATE TABLE IF NOT EXISTS Inventory (
 CREATE TABLE IF NOT EXISTS Orders (
 	 order_id INT NOT NULL AUTO_INCREMENT,
 	 order_date DATE,
-	 status VARCHAR(50) NOT NULL,
+	 order_status ENUM('Order is bring prepared', 'Shipped', 'Delivered', 'Canceled') NOT NULL,
 	 shipping_address VARCHAR(50),
 	 -- amount DECIMAL,
      -- product_id INT,
@@ -87,44 +88,26 @@ CREATE TABLE IF NOT EXISTS OrderItems (
     product_id INT NOT NULL,
     quantity DECIMAL NOT NULL,
     price DECIMAL(10,2) DEFAULT 0.00,
+    total_price DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (order_items_id),
     CONSTRAINT fk_order_id FOREIGN KEY (order_id) REFERENCES Orders (order_id),
     CONSTRAINT fk_product_id FOREIGN KEY (product_id) REFERENCES Products (product_id)
-);
-
-CREATE TABLE IF NOT EXISTS OrderStatus(
-	status_id INT NOT NULL AUTO_INCREMENT,
-    status_value VARCHAR(255),
-	PRIMARY KEY (status_id)
-);
-
-INSERT INTO OrderStatus (status_value)
-VALUES ('Order is bring prepared'), -- 1
-('Shipped'), -- 2
-('Delivered'), -- 3
-('Canceled'); -- 4
-
-CREATE TABLE IF NOT EXISTS Warehouse (
-	 warehouse_id INT NOT NULL AUTO_INCREMENT,
-	 location VARCHAR(255),
-	 capacity INT,
-	 inventory_stored INT,
-     employee_id INT,
-		PRIMARY KEY (warehouse_id),
-	 CONSTRAINT fk_warehouse_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id)
 );
 
 
 CREATE TABLE IF NOT EXISTS Shipment (
 	 shipment_id INT NOT NULL AUTO_INCREMENT,
 	 shipment_date DATE,
-	 status VARCHAR(50),
-	 carrier VARCHAR(100),
-	 deliver_date DATE,
+	 carrier ENUM('Fedex', 'UPS', 'DHL', 'USPS') NOT NULL,
+	 estimated_delivery_date DATE,
      order_id INT,
 	 PRIMARY KEY (shipment_id),
 	 CONSTRAINT fk_shipment_orders FOREIGN KEY (order_id) REFERENCES Orders (order_id)
 );
+
+
+
+-- POPULATE TABLES 
 
 INSERT INTO Suppliers (supplier_name, contact_number,address)
 VALUES ('ABC Electronics', 7131111001, '123 Main St, Houston, Tx'),
@@ -163,13 +146,17 @@ VALUES ('Laptop', 'BN123', 'Electronics', 500.00, '2024-10-01', 100, 600.00,
     WHERE supplier_name = 'Home Stuff Co'));
 
 
-INSERT INTO Employees (name, role, contact_number, address)
-VALUES ('John Doe', 'manager', '7121231111', '123 Houston St, Houston, Tx'),
-	('Jane Smith', 'staff', '7121232222', '234 Katy St, Katy, Tx'),
-	('Alice Johnson', 'staff', '7121233333', '3453 Sugarland St, Sugarland, Tx'),
-	('Bob Brown', 'manager', '7121234444', '123 Woodlands St, Woodlands, Tx'),
-	('Charlies Davis', 'staff', '7121235555', '123 Spring St, Spring, Tx'),
-	('Jack Bauer', 'staff', '7121236666', '123 Humble St, Humble, Tx');
+INSERT INTO Employees (name, role, contact_number, address, salary)
+VALUES ('John Doe', 'manager', '7121231111', '123 Houston St, Houston, Tx', 120000),
+	('Jane Smith', 'staff', '7121232222', '234 Katy St, Katy, Tx', 42000),
+	('Alice Johnson', 'staff', '7121233333', '3453 Sugarland St, Sugarland, Tx', 48000),
+	('Bob Brown', 'manager', '7121234444', '123 Woodlands St, Woodlands, Tx', 135000),
+	('Charlies Davis', 'staff', '7121235555', '123 Spring St, Spring, Tx', 36000),
+	('Jack Bauer', 'staff', '7121236666', '123 Humble St, Humble, Tx', 39000),
+    ('Mickey Haller', 'manager', '7137777777', '9710 Katy Fwy, Houston, Tx', 150000),
+    ('Gregory House', 'staff', '7138888888', '1 Main St, Houston, Tx', 42000),
+    ('Steve Rogers', 'staff', '7139999999', '2 Main St, Houston, Tx', 43000),
+    ('Huge Jackedman', 'staff', '7130000000', '5 Xman St, Houston, Tx', 49500);
 
 INSERT INTO Customers (customer_name, address, contact_number, payment_detail, employee_id)
 VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
@@ -224,11 +211,9 @@ VALUES ('Jack Smith', '123 Qwerty St, Houton, Tx', '7131111111', 'Visa',
     
 
 
-INSERT INTO Orders (order_date, status, shipping_address, customer_id)	
-VALUES (CURDATE(), 
-	(SELECT status_value
-    FROM OrderStatus
-    WHERE status_id = 1), 
+INSERT INTO Orders (order_date, order_status, shipping_address, customer_id)	
+VALUES ( '2024-11-07',
+	1, 
     (SELECT address
     FROM Customers
     WHERE customer_name = "Jack Smith"),
@@ -236,10 +221,8 @@ VALUES (CURDATE(),
 	FROM Customers
 	WHERE customer_name = "Jack Smith")),
     
-    (CURDATE(),
-    (SELECT status_value
-    FROM OrderStatus
-    WHERE status_id = 1),
+    ('2024-07-08',
+    2,
 	(SELECT address
     FROM Customers
     WHERE customer_name = "Dana White"),
@@ -250,44 +233,67 @@ VALUES (CURDATE(),
 -- Customer Order Items
 -- Jack Smith   
 SET @jacksmith = (SELECT order_id FROM ORDERS WHERE customer_id = 1);
-INSERT INTO OrderItems(order_id, product_id, quantity, price)
+INSERT INTO OrderItems(order_id, product_id, quantity, price, total_price)
 VALUES ( @jacksmith, 1, 1,
-		(SELECT price FROM Products WHERE product_id = 1)),
+		(SELECT price FROM Products WHERE product_id = 1), 
+        quantity * price),
 		( @jacksmith, 3, 1,
-		(SELECT price FROM Products WHERE product_id = 3)),
+		(SELECT price FROM Products WHERE product_id = 3),
+        quantity * price),
 		( @jacksmith, 5, 2,
-        (SELECT price FROM Products WHERE product_id = 5));
+        (SELECT price FROM Products WHERE product_id = 5),
+        quantity * price);
 
 UPDATE Products SET quantity = quantity -1 WHERE product_id = 1 AND quantity >0;
 UPDATE Products SET quantity = quantity -1 WHERE product_id = 3 AND quantity >0;
 UPDATE Products SET quantity = quantity -2 WHERE product_id = 5 AND quantity >0;
 
+
+INSERT INTO Shipment (shipment_date, carrier, estimated_delivery_date, order_id)
+VALUES ((SELECT DATE_ADD(
+		(SELECT order_date
+		FROM Orders
+		WHERE order_id = @jacksmith), INTERVAL 1 DAY)),
+        'Fedex',
+        (SELECT DATE_ADD(
+        (SELECT order_date
+		FROM Orders
+		WHERE order_id = @jacksmith), INTERVAL 5 DAY)),
+        @jacksmith);
+        
+
+
+
+
 -- Customer Order Items
 -- Dana White  
 SET @danawhite = (SELECT order_id FROM ORDERS WHERE customer_id = 2);
-INSERT INTO OrderItems(order_id, product_id, quantity, price)
+INSERT INTO OrderItems(order_id, product_id, quantity, price, total_price)
 VALUES ( @danawhite, 2, 1,
-		(SELECT price FROM Products WHERE product_id = 2)),
+		(SELECT price FROM Products WHERE product_id = 2),
+        quantity * price),
 		( @danawhite, 6, 5,
-        (SELECT price FROM Products WHERE product_id = 6)),
+        (SELECT price FROM Products WHERE product_id = 6),
+        quantity * price),
 		( @danawhite, 7, 4,
-		(SELECT price FROM Products WHERE product_id = 7));
+		(SELECT price FROM Products WHERE product_id = 7),
+        quantity * price);
 
 UPDATE Products SET quantity = quantity -1 WHERE product_id = 2 AND quantity >0;
 UPDATE Products SET quantity = quantity -5 WHERE product_id = 6 AND quantity >0;
 UPDATE Products SET quantity = quantity -4 WHERE product_id = 7 AND quantity >0;
 
-
-
-
-INSERT INTO Warehouse(location, capacity, inventory_stored, employee_id)
-VALUES('Warehouse A, Springfield, IL', 10000, 5000, 1),
-('Warehouse B, Springfield, IL', 8000, 3000, 4),
-('Warehouse C, Springfield, IL', 12000, 6000, 4),
-('Warehouse D, Springfield, IL', 15000, 7000, 1),
-('Warehouse E, Springfield, IL', 9000, 45000, 4),
-('Warehouse F, Springfield, IL', 11000, 55000, 1),
-('Warehouse G, Springfield, IL', 14000, 6800, 1);
+INSERT INTO Shipment (shipment_date, carrier, estimated_delivery_date, order_id)
+VALUES ((SELECT DATE_ADD(
+		(SELECT order_date
+		FROM Orders
+		WHERE order_id = @danawhite), INTERVAL 1 DAY)),
+        'UPS',
+        (SELECT DATE_ADD(
+        (SELECT order_date
+		FROM Orders
+		WHERE order_id = @danawhite), INTERVAL 5 DAY)),
+        @danawhite);
 
 
 
