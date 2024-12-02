@@ -54,9 +54,7 @@ CREATE TABLE IF NOT EXISTS Customers (
 
 CREATE TABLE IF NOT EXISTS Inventory (
 	 inventory_id INT NOT NULL AUTO_INCREMENT,
-	 -- location VARCHAR(255),
 	 current_quantity INT NOT NULL,
-	 -- inventory_turnover DECIMAL(10,2),
 	 last_update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
      product_id INT,
      employee_id INT,
@@ -72,14 +70,8 @@ CREATE TABLE IF NOT EXISTS Orders (
 	 order_date DATE,
 	 order_status ENUM('Order is bring prepared', 'Shipped', 'Delivered', 'Canceled') NOT NULL,
 	 shipping_address VARCHAR(50),
-	 -- amount DECIMAL,
-     -- product_id INT,
-     -- employee_id INT,
      customer_id INT, 
-     -- total_price DECIMAL(10,2) NOT NULL,
 	  PRIMARY KEY (order_id),
-	 -- CONSTRAINT fk_orders_products FOREIGN KEY (product_id) REFERENCES Products (product_id),
-	 -- CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id) REFERENCES Employees (employee_id),
 	 CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id) REFERENCES Customers (customer_id)
      ON DELETE CASCADE
 );
@@ -163,32 +155,32 @@ VALUES ('John Doe', 'manager', '7121231111', '123 Houston St, Houston, Tx', 1200
 
 
 INSERT INTO Inventory (product_id, current_quantity, employee_id)
-VALUES ((SELECT product_id FROM Products WHERE product_name = 'Laptop'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'Laptop'),
+VALUES (1, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 1),
 		(SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'Jeans'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'Jeans'),
+        (5, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 5),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'M&Ms'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'M&Ms'),
+        (6, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 6),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'T-Shirt'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'T-Shirt'),
+        (3, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 3),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'TV'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'TV'),
+        (2, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 2),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'Apple'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'Apple'),
+        (4, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 4),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1)),
         
-        ((SELECT product_id FROM Products WHERE product_name = 'Pillow'), 
-        (SELECT initial_quantity FROM Products WHERE product_name = 'Pillow'),
+        (7, 
+        (SELECT initial_quantity FROM Products WHERE product_id = 7),
         (SELECT employee_id FROM employees WHERE role = 'staff' ORDER BY RAND() LIMIT 1))
         ;
         
@@ -222,19 +214,38 @@ VALUES ( '2024-11-07',
 	1, 				-- order status
     (SELECT address
     FROM Customers
-    WHERE customer_name = "Jack Smith"),
+    WHERE customer_name = 'Jack Smith'),
 	(SELECT customer_id
 	FROM Customers
-	WHERE customer_name = "Jack Smith")),
+	WHERE customer_name = 'Jack Smith')),
     
     ('2024-07-08',
     2,				-- order status
 	(SELECT address
     FROM Customers
-    WHERE customer_name = "Dana White"),
+    WHERE customer_name = 'Dana White'),
     (SELECT customer_id
 	FROM Customers
-	WHERE customer_name = "Dana White"));
+	WHERE customer_name = 'Dana White')),
+    
+    ( '2024-08-24',
+	3, 				-- order status
+    (SELECT address
+    FROM Customers
+    WHERE customer_name = 'Ethan Green'),
+	(SELECT customer_id
+	FROM Customers
+	WHERE customer_name = 'Ethan Green')),
+    
+    ('2024-09-15',
+    4,				-- order status
+	(SELECT address
+    FROM Customers
+    WHERE customer_name = 'Hannah Gray'),
+    (SELECT customer_id
+	FROM Customers
+	WHERE customer_name = 'Hannah Gray'))
+    ;
     
     
     
@@ -245,7 +256,7 @@ INSERT INTO OrderItems(order_id, product_id, quantity, price, total_price)
 VALUES ( @jacksmith, 1, 1,
 		(SELECT price FROM Products WHERE product_id = 1), 
         quantity * price),
-		( @jacksmith, 3, 1,
+		( @jacksmith, 3, 4,
 		(SELECT price FROM Products WHERE product_id = 3),
         quantity * price),
 		( @jacksmith, 5, 2,
@@ -253,7 +264,7 @@ VALUES ( @jacksmith, 1, 1,
         quantity * price);
 
 UPDATE Inventory SET current_quantity = current_quantity -1 WHERE product_id = 1 AND current_quantity >0;
-UPDATE Inventory SET current_quantity = current_quantity -1 WHERE product_id = 3 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -4 WHERE product_id = 3 AND current_quantity >0;
 UPDATE Inventory SET current_quantity = current_quantity -2 WHERE product_id = 5 AND current_quantity >0;
 
 
@@ -269,8 +280,6 @@ VALUES ((SELECT DATE_ADD(
 		WHERE order_id = @jacksmith), INTERVAL 5 DAY)),
         @jacksmith);
         
-
-
 
 
 -- Customer Order Items
@@ -303,8 +312,79 @@ VALUES ((SELECT DATE_ADD(
 		WHERE order_id = @danawhite), INTERVAL 5 DAY)),
         @danawhite);
 
+-- Customer Order Items
+-- Ethan Green 
+SET @ethangreen = (SELECT order_id FROM ORDERS WHERE customer_id = 5);
+INSERT INTO OrderItems(order_id, product_id, quantity, price, total_price)
+VALUES ( @ethangreen, 2, 2,
+		(SELECT price FROM Products WHERE product_id = 2), 
+        quantity * price),
+		( @ethangreen, 3, 1,
+		(SELECT price FROM Products WHERE product_id = 3),
+        quantity * price),
+        ( @ethangreen, 4, 15,
+		(SELECT price FROM Products WHERE product_id = 4),
+        quantity * price),
+		( @ethangreen, 5, 7,
+        (SELECT price FROM Products WHERE product_id = 5),
+        quantity * price);
+
+UPDATE Inventory SET current_quantity = current_quantity -2 WHERE product_id = 2 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -1 WHERE product_id = 3 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -15 WHERE product_id = 4 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -7 WHERE product_id = 5 AND current_quantity >0;
 
 
+INSERT INTO Shipments (shipment_date, carrier, estimated_delivery_date, order_id)
+VALUES ((SELECT DATE_ADD(
+		(SELECT order_date
+		FROM Orders
+		WHERE order_id = @ethangreen), INTERVAL 1 DAY)),
+        'DHL',
+        (SELECT DATE_ADD(
+        (SELECT order_date
+		FROM Orders
+		WHERE order_id = @ethangreen), INTERVAL 5 DAY)),
+        @ethangreen);
+
+-- Customer Order Items
+-- Hannah Gray
+SET @hannahgray = (SELECT order_id FROM ORDERS WHERE customer_id = 7);
+INSERT INTO OrderItems(order_id, product_id, quantity, price, total_price)
+VALUES ( @hannahgray, 5, 10,
+		(SELECT price FROM Products WHERE product_id = 2), 
+        quantity * price),
+		( @hannahgray, 3, 7,
+		(SELECT price FROM Products WHERE product_id = 3),
+        quantity * price),
+        ( @hannahgray, 2, 5,
+		(SELECT price FROM Products WHERE product_id = 4),
+        quantity * price),
+		( @hannahgray, 6, 2,
+        (SELECT price FROM Products WHERE product_id = 5),
+        quantity * price),
+        ( @hannahgray, 7, 20,
+        (SELECT price FROM Products WHERE product_id = 5),
+        quantity * price);
+
+UPDATE Inventory SET current_quantity = current_quantity -10 WHERE product_id = 5 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -7 WHERE product_id = 3 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -5 WHERE product_id = 2 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -2 WHERE product_id = 6 AND current_quantity >0;
+UPDATE Inventory SET current_quantity = current_quantity -20 WHERE product_id = 7 AND current_quantity >0;
+
+
+INSERT INTO Shipments (shipment_date, carrier, estimated_delivery_date, order_id)
+VALUES ((SELECT DATE_ADD(
+		(SELECT order_date
+		FROM Orders
+		WHERE order_id = @hannahgray), INTERVAL 1 DAY)),
+        'USPS',
+        (SELECT DATE_ADD(
+        (SELECT order_date
+		FROM Orders
+		WHERE order_id = @hannahgray), INTERVAL 5 DAY)),
+        @hannahgray);
     
     
     
